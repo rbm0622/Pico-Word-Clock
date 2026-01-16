@@ -34,15 +34,15 @@ def minute_to_words(minute):
     elif minute == 15:
         return ["A", "QUARTER"], "PAST"
     elif minute == 20:
-        return ["TWENTY_M"], "PAST"
+        return ["TWENTY"], "PAST"
     elif minute == 25:
-        return ["TWENTY_M", "FIVE_M"], "PAST"
+        return ["TWENTY", "FIVE_M"], "PAST"
     elif minute == 30:
         return ["HALF"], "PAST"
     elif minute == 35:
-        return ["TWENTY_M", "FIVE_M"], "TO"
+        return ["TWENTY", "FIVE_M"], "TO"
     elif minute == 40:
-        return ["TWENTY_M"], "TO"
+        return ["TWENTY"], "TO"
     elif minute == 45:
         return ["A", "QUARTER"], "TO"
     elif minute == 50:
@@ -59,13 +59,18 @@ def time_to_words(hour, minute):
     if relation == "OCLOCK":
         words.append(hour_to_word(hour))
         words.append("OCLOCK")
-        return words
+    else:
+        if relation == "TO":
+            hour += 1
 
-    if relation == "TO":
-        hour += 1
+        words.extend(minute_words)
+        words.append(relation)
+        words.append(hour_to_word(hour))
 
-    words.extend(minute_words)
-    words.append(relation)
-    words.append(hour_to_word(hour))
+    # AM / PM
+    if hour % 24 < 12:
+        words.append("AM")
+    else:
+        words.append("PM")
 
     return words
