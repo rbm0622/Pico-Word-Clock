@@ -1,5 +1,0 @@
-{
-    "ssid": "cedar",
-    "password": "",
-    "utc_offset": -5
-}
