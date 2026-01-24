@@ -1,112 +1,79 @@
-// ==============================
-// Word Clock Snap-Fit Frame
-// ==============================
+// ==========================================
+// Word Clock Snap-Fit Frame Generator
+// ==========================================
 
-include <word_clock_stencil.scad>;
+// --- 1. DIMENSIONS (Must match your Diverter) ---
+total_width = 175;    // Matching diverter width
+total_height = 130;   // Matching diverter height
+diverter_depth = 10;  // Thickness of the diverter plate
 
-// ------------------------------
-// Parameters
-// ------------------------------
-frame_thickness   = 3;      // Frame wall thickness
-frame_depth       = 12;     // Total depth of frame
-lip_depth         = 2;      // Diffuser retention depth
-lip_width         = 2;      // Diffuser ledge width
+// --- 2. SNAP FIT SETTINGS ---
+wall_thickness = 2.0; // Outer wall of the frame
+frame_lip = 1.5;      // How much the frame overlaps the diverter
+clearance = 0.2;      // Print tolerance (increase if too tight)
+snap_height = 2.0;    // Height of the "locking" tab
 
-snap_count_long   = 4;
-snap_count_short  = 3;
+// ==========================================
+// FRAME RENDER LOGIC
+// ==========================================
 
-snap_width        = 8;
-snap_height       = 6;
-snap_thickness    = 1.4;
-snap_offset       = 3;      // Distance from edge
-snap_angle        = 15;     // Snap lead-in angle
-
-clearance         = 0.25;   // Print tolerance
-
-// ------------------------------
-// Derived
-// ------------------------------
-inner_w = width;
-inner_h = height;
-
-outer_w = inner_w + frame_thickness * 2;
-outer_h = inner_h + frame_thickness * 2;
-
-// ==============================
-// Frame body
-// ==============================
-difference() {
-    // Outer frame
-    cube([outer_w, outer_h, frame_depth]);
-
-    // Inner cutout
-    translate([
-        frame_thickness,
-        frame_thickness,
-        0
-    ])
-    cube([
-        inner_w,
-        inner_h,
-        frame_depth
-    ]);
-
-    // Diffuser recess
-    translate([
-        frame_thickness - lip_width,
-        frame_thickness - lip_width,
-        frame_depth - lip_depth
-    ])
-    cube([
-        inner_w + lip_width * 2,
-        inner_h + lip_width * 2,
-        lip_depth + 0.01
-    ]);
-}
-
-// ==============================
-// Snap tabs
-// ==============================
-
-// Long sides
-for (i = [1 : snap_count_long]) {
-    x = frame_thickness + i * inner_w / (snap_count_long + 1) - snap_width / 2;
-
-    // Bottom
-    snap_tab(x, -snap_thickness, 0);
-
-    // Top
-    mirror([0,1,0])
-        translate([0, -outer_h, 0])
-            snap_tab(x, -snap_thickness, 0);
-}
-
-// Short sides
-for (i = [1 : snap_count_short]) {
-    y = frame_thickness + i * inner_h / (snap_count_short + 1) - snap_width / 2;
-
-    // Left
-    rotate([0,0,90])
-        snap_tab(y, -snap_thickness, 0);
-
-    // Right
-    mirror([1,0,0])
-        rotate([0,0,90])
-            translate([-outer_w, 0, 0])
-                snap_tab(y, -snap_thickness, 0);
-}
-
-// ==============================
-// Snap tab module
-// ==============================
-module snap_tab(x, y, z) {
-    translate([x, y, frame_depth - snap_height - snap_offset])
+module snap_frame() {
+    // Inner dimensions with clearance
+    inner_w = total_width + (clearance * 2);
+    inner_h = total_height + (clearance * 2);
+    
+    // Outer dimensions
+    outer_w = inner_w + (wall_thickness * 2);
+    outer_h = inner_h + (wall_thickness * 2);
+    
     difference() {
-        cube([snap_width, snap_thickness, snap_height]);
+        // Main Frame Body
+        cube([outer_w, outer_h, diverter_depth + snap_height]);
 
-        // Angled lead-in
-        translate([-1, -1, snap_height - 2])
-        rotate([snap_angle,0,0])
-        cube([snap_width + 2, snap_thickness + 2, 5]);
+        // Subtract the cavity for the diverter
+        translate([wall_thickness, wall_thickness, -1])
+            cube([inner_w, inner_h, diverter_depth + 1]);
+
+        // Subtract the "View Window" (hollow center)
+        // This leaves the 'lip' that holds the faceplate/diverter
+        translate([wall_thickness + frame_lip, wall_thickness + frame_lip, -2])
+            cube([inner_w - (frame_lip * 2), inner_h - (frame_lip * 2), diverter_depth + snap_height + 4]);
     }
+    
+    // Add Snap-Fit Tabs
+    // These are small wedges on the inside of the frame walls
+    tab_size = 10;
+    
+    // Position tabs on all four sides
+    // Bottom side
+    translate([outer_w/2 - tab_size/2, wall_thickness, diverter_depth])
+        snap_tab(tab_size);
+    
+    // Top side
+    translate([outer_w/2 + tab_size/2, outer_h - wall_thickness, diverter_depth])
+        rotate([0,0,180]) snap_tab(tab_size);
+        
+    // Left side
+    translate([wall_thickness, outer_h/2 + tab_size/2, diverter_depth])
+        rotate([0,0,270]) snap_tab(tab_size);
+        
+    // Right side
+    translate([outer_w - wall_thickness, outer_h/2 - tab_size/2, diverter_depth])
+        rotate([0,0,90]) snap_tab(tab_size);
 }
+
+module snap_tab(w) {
+    // A small triangular prism that slopes inward to lock the plate
+    rotate([90, 0, 90])
+    linear_extrude(height = w)
+    polygon(points=[[0,0], [frame_lip * 0.8, 0], [0, snap_height]]);
+}
+
+// Render
+snap_frame();
+
+// ==========================================
+// PRINTING TIPS:
+// 1. Print this with the "lip" facing down on the bed.
+// 2. Use a material with slight flex like PETG for best snap results. 
+// 3. If using PLA, the tabs may be stiff; adjust 'clearance' if needed.
