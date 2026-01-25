@@ -30,7 +30,7 @@ A word clock built with a Raspberry Pi Pico W uses a 10 × 11 grid of letters (1
 
 *   11 x 10 Grid. 110 pixels.
 *   Even rows red left to right. Odd rows opposite.
-*   Used ChatGPT and Gemini to code and build 3D models
+*   Used VS Code, ChatGPT and Gemini to code and build 3D models
 *   Used [OpenSCAD](https://openscad.org/) to build models
 
 # References (thank you)
