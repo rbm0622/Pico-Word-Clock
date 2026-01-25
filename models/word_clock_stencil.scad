@@ -1,16 +1,16 @@
 // Word Clock Stencil with Asymmetric Border
 // Units: millimeters
 
-inch = 25.4;
+// inch = 25.4;
 
 // Inner stencil size (original)
-width = 18.15;
-height = 13;
-thickness = 2;
+width = 175;
+height = 130;
+thickness = 1;
 
 // Borders
 border_lr = 50; // left & right
-border_tb = 25; // top & bottom
+border_tb = 20; // top & bottom
 
 // Outer size
 outer_width  = width  + border_lr * 2;
